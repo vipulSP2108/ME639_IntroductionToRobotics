@@ -1,0 +1,14 @@
+# AI Generation Prompts
+
+This project was built iteratively using the following AI prompts:
+
+1.  **Initial Setup:** "I have an empty project folder. I want you to set up a basic React frontend boilerplate in this folder. For now, we only need the frontend — no backend, database, API, or authentication. Set up a clean React project with: Basic React setup Clean folder structure"
+2.  **3D Scene Setup:** "Create a basic 3D scene that can display coordinate axes and a grid and add it to the canvas, Add a fixed reference coordinate frame with X, Y, and Z axes. This frame should remain stationary then Add a second coordinate frame representing a rigid body. This frame should be able to rotate independently from the fixed reference frame."
+3.  **Visual Distinction & Interaction:** "Make the two coordinate frames visually distinct so it is easy to understand which one is fixed and which one is rotating. Add canvas camera to control the rotation of the body frame around the X, Y, and Z axes in real time and connect it to the 3D body frame so that changing any angle immediately updates its orientation"
+4.  **Rotation Matrix Math:** "Calculate the 3×3 rotation matrix corresponding to the current X, Y, and Z rotation values. Display the current rotation matrix clearly in the UI and update it whenever the rotation changes. Show the current rotation angle for each axis"
+5.  **Reset functionality & Review:** "Add a reset button that returns the body frame and all rotation angles to the default orientation. and Review the entire application, fix any issues, improve the UI where necessary, and make sure the 3D rotation, sliders, and rotation matrix all stay synchronized in real time"
+6.  **3D Object Redesign & Environment:** "Replace the current square/cube with a transparent asymmetric 3D object. Do not use a simple symmetric shape (like cube, square). Improve the 3D environment with a clean grid, proper lighting, shadows, distinct X/Y/Z axes, and a good background. Make sure the object and coordinate frames are clearly visible and the overall scene looks like a 3D tool."
+7.  **Editable Matrix Implementation:** "Make the Rotation Matrix editable in the UI. Allow the user to directly change the 3×3 matrix values, and when the matrix is edited, automatically update the orientation of the 3D body and its coordinate frame."
+8.  **Final Review & Polish:** "Review the entire project and implement all the requirements from the previous prompts together."
+9.  **Documentation:** "Structure a proper, comprehensive README for the project. Apart from setup and installation, include the project overview, purpose, key features, and the reasoning behind important choices... Clearly explain the “why” behind the project’s design and implementation decisions."
+10. **Prompt Logging:** "Also add a prompts.md file to store all prompts used throughout the project."

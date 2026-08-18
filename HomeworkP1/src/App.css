@@ -1,0 +1,197 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #0e0e14;
+  color: #e8eaf0;
+  overflow: hidden;
+}
+
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+.app-root {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+}
+
+.canvas {
+  flex: 1;
+}
+
+/* ── Side Panel ──────────────────────────────────────────────────────────── */
+.panel {
+  width: 300px;
+  flex-shrink: 0;
+  background: rgba(16, 16, 26, 0.92);
+  backdrop-filter: blur(16px);
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: linear-gradient(135deg, #a0c4ff, #c3aef9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.panel-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* ── Sections ────────────────────────────────────────────────────────────── */
+.section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.section-title {
+  margin: 0 0 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+/* ── Sliders ─────────────────────────────────────────────────────────────── */
+.slider-row {
+  display: grid;
+  grid-template-columns: 16px 1fr 44px 60px;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.slider-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #a0c4ff;
+  cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.3);
+  transition: transform 0.1s;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.slider-value {
+  font-size: 0.78rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: #d1d5db;
+  text-align: right;
+}
+
+.slider-rad {
+  font-size: 0.7rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: #4b5563;
+  text-align: right;
+}
+
+/* ── Rotation Matrix ─────────────────────────────────────────────────────── */
+.matrix-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+
+.matrix-cell {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  color: #c7d2fe;
+  padding: 5px 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.76rem;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.15s;
+  -moz-appearance: textfield;
+}
+
+.matrix-cell::-webkit-outer-spin-button,
+.matrix-cell::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.matrix-cell:focus {
+  border-color: #a0c4ff;
+  background: rgba(160, 196, 255, 0.08);
+}
+
+.matrix-note {
+  margin: 0.25rem 0 0;
+  font-size: 0.65rem;
+  color: #4b5563;
+  line-height: 1.4;
+}
+
+/* ── Reset Button ────────────────────────────────────────────────────────── */
+.reset-btn {
+  margin-top: auto;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(135deg, #ff6b6b, #ee3e3e);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: opacity 0.15s, transform 0.1s;
+  box-shadow: 0 2px 12px rgba(238, 62, 62, 0.3);
+}
+
+.reset-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.reset-btn:active {
+  transform: translateY(0);
+  opacity: 1;
+}
