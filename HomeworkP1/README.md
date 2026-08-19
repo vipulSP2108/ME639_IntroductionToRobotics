@@ -8,6 +8,7 @@ Understanding 3D rotations can be notoriously difficult due to the mathematical 
 
 ## Key Features
 *   **Real-Time Bi-directional Synchronization:** The application state is fully synchronized. You can rotate the object by dragging the 3D gizmo, adjusting the UI sliders, or directly typing values into the 3×3 rotation matrix. Updating one instantly updates the others.
+*   **Move Mode (Top-Right Toggle):** A top-right toggle button allows switching into Move Mode to select, click, drag, and translate the rigid body in 3D space with dedicated translation gizmos, hotkeys (`M`/`R`), and clear visual indicators.
 *   **Distinct Coordinate Frames:** The scene clearly delineates the **Fixed Global Frame** (stationary at the origin) and the **Local Body Frame** (moves and rotates with the object).
 *   **Interactive 3D Canvas:** Built-in OrbitControls allow you to pan and zoom around the scene, while TransformControls allow direct manipulation of the object's rotation.
 *   **Modern UI:** A sleek, non-obtrusive "glassmorphism" side panel houses the controls, maximizing the viewable area of the 3D canvas.
