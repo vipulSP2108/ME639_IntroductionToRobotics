@@ -10,49 +10,52 @@ import mujoco.viewer
 MENAGERIE_X2_PATH = "/Users/aai/Desktop/ROS/mujoco_menagerie/skydio_x2/scene.xml"
 FALLBACK_CRAZYFLIE_PATH = "/Users/aai/Desktop/ROS/mujoco_menagerie/bitcraze_crazyflie_2/scene.xml"
 
-# Embedded standalone Quadrotor MJCF XML in case Menagerie scene needs local fallback
-QUADROTOR_FALLBACK_XML = """
-<mujoco model="skydio_x2_quadrotor">
-  <compiler angle="degree" coordinate="local"/>
-  <option timestep="0.01" gravity="0 0 -9.81"/>
+import json
 
-  <visual>
-    <headlight ambient="0.4 0.4 0.4" diffuse="0.8 0.8 0.8"/>
-  </visual>
-
-  <worldbody>
-    <light pos="0 0 5" dir="0 0 -1"/>
-    <geom name="floor" type="plane" size="10 10 0.1" rgba="0.8 0.8 0.8 1"/>
-
-    <!-- Quadrotor Body -->
+def generate_quadrotor_xml(base_xml_path):
+    # If base_xml_path is provided, we include it. Otherwise, we define a standalone drone.
+    if base_xml_path:
+        drone_include = f'<include file="{base_xml_path}"/>'
+    else:
+        drone_include = """
+    <!-- Quadrotor Body (Fallback) -->
     <body name="quadrotor" pos="0 0 1.0">
       <freejoint name="root"/>
-      
-      <!-- Central Body Frame -->
       <geom name="chassis" type="box" size="0.1 0.08 0.03" rgba="0.2 0.2 0.2 1"/>
       <geom name="camera_gimbal" type="sphere" size="0.025" pos="0.1 0 -0.01" rgba="0.1 0.7 0.9 1"/>
-
-      <!-- Visual Body Frame Axes (X: Red, Y: Green, Z: Blue) -->
+      <!-- Visual Body Frame Axes -->
       <geom name="axis_x" type="cylinder" size="0.005 0.12" pos="0.12 0 0" quat="0.7071 0 0.7071 0" rgba="1 0 0 1" contype="0" conaffinity="0"/>
       <geom name="axis_y" type="cylinder" size="0.005 0.12" pos="0 0.12 0" quat="0.7071 -0.7071 0 0" rgba="0 1 0 1" contype="0" conaffinity="0"/>
       <geom name="axis_z" type="cylinder" size="0.005 0.12" pos="0 0 0.12" rgba="0 0 1 1" contype="0" conaffinity="0"/>
-
-      <!-- Quadrotor Arms & Rotors -->
-      <!-- Front Right -->
       <geom type="capsule" fromto="0 0 0 0.15 -0.15 0" size="0.008" rgba="0.4 0.4 0.4 1"/>
       <geom type="cylinder" size="0.07 0.002" pos="0.15 -0.15 0.01" rgba="0.9 0.1 0.1 0.7"/>
-
-      <!-- Front Left -->
       <geom type="capsule" fromto="0 0 0 0.15 0.15 0" size="0.008" rgba="0.4 0.4 0.4 1"/>
       <geom type="cylinder" size="0.07 0.002" pos="0.15 0.15 0.01" rgba="0.9 0.1 0.1 0.7"/>
-
-      <!-- Rear Left -->
       <geom type="capsule" fromto="0 0 0 -0.15 0.15 0" size="0.008" rgba="0.4 0.4 0.4 1"/>
       <geom type="cylinder" size="0.07 0.002" pos="-0.15 0.15 0.01" rgba="0.1 0.1 0.9 0.7"/>
-
-      <!-- Rear Right -->
       <geom type="capsule" fromto="0 0 0 -0.15 -0.15 0" size="0.008" rgba="0.4 0.4 0.4 1"/>
       <geom type="cylinder" size="0.07 0.002" pos="-0.15 -0.15 0.01" rgba="0.1 0.1 0.9 0.7"/>
+    </body>
+"""
+
+    return f"""
+<mujoco model="quadrotor_wrapper">
+  {drone_include}
+  <compiler angle="degree" coordinate="local"/>
+  
+  <worldbody>
+    <!-- World Frame Axes (Static at Origin) -->
+    <geom name="world_axis_x" type="cylinder" size="0.005 0.2" pos="0.2 0 0.0" quat="0.7071 0 0.7071 0" rgba="1 0 0 1" contype="0" conaffinity="0"/>
+    <geom name="world_axis_y" type="cylinder" size="0.005 0.2" pos="0 0.2 0.0" quat="0.7071 -0.7071 0 0" rgba="0 1 0 1" contype="0" conaffinity="0"/>
+    <geom name="world_axis_z" type="cylinder" size="0.005 0.2" pos="0 0 0.2" rgba="0 0 1 1" contype="0" conaffinity="0"/>
+
+    <!-- Ghost Robot (Static Reference at Start Pos Z=1.0) -->
+    <body name="ghost_bot" pos="0 0 1.0">
+      <geom type="box" size="0.1 0.08 0.03" rgba="0.2 0.2 0.2 0.3" contype="0" conaffinity="0"/>
+      <geom type="capsule" fromto="0 0 0 0.15 -0.15 0" size="0.008" rgba="0.4 0.4 0.4 0.3" contype="0" conaffinity="0"/>
+      <geom type="capsule" fromto="0 0 0 0.15 0.15 0" size="0.008" rgba="0.4 0.4 0.4 0.3" contype="0" conaffinity="0"/>
+      <geom type="capsule" fromto="0 0 0 -0.15 0.15 0" size="0.008" rgba="0.4 0.4 0.4 0.3" contype="0" conaffinity="0"/>
+      <geom type="capsule" fromto="0 0 0 -0.15 -0.15 0" size="0.008" rgba="0.4 0.4 0.4 0.3" contype="0" conaffinity="0"/>
     </body>
   </worldbody>
 </mujoco>
@@ -97,28 +100,43 @@ def euler_to_quaternion(roll, pitch, yaw):
     return np.array([qw, qx, qy, qz])
 
 def main():
+    config_path = os.path.join(os.path.dirname(__file__), 'config.json')
+    try:
+        with open(config_path, 'r') as f:
+            config = json.load(f).get('quadrotor', {})
+    except Exception as e:
+        print(f"Failed to load config.json, using defaults: {e}")
+        config = {}
+
+    linear_speed_step = config.get("linear_speed_step", 0.05)
+    angular_speed_step = config.get("angular_speed_step", 0.1)
+    damping = config.get("damping", 0.95)
+
     print("=" * 60)
     print("CHALLENGE 2: MuJoCo Skydio X2 Quadrotor Teleop & Body Frame Tracker")
     print("=" * 60)
-    print("Controls:")
-    print("  W / S : Forward / Backward (Pitch Tilt)")
-    print("  A / D : Left / Right Roll (Roll Tilt)")
-    print("  I / K : Ascend / Descend Altitude")
-    print("  J / L : Yaw Left / Yaw Right")
-    print("  SPACE : Hover Neutral")
-    print("  Q     : Quit Simulation")
-    print("=" * 60)
-
-    # Attempt loading from Menagerie Skydio X2 first
+    
     if os.path.exists(MENAGERIE_X2_PATH):
         print(f"Loading Menagerie Quadrotor Model: {MENAGERIE_X2_PATH}")
-        model = mujoco.MjModel.from_xml_path(MENAGERIE_X2_PATH)
+        xml_string = generate_quadrotor_xml(MENAGERIE_X2_PATH)
     elif os.path.exists(FALLBACK_CRAZYFLIE_PATH):
         print(f"Loading Menagerie Quadrotor Model: {FALLBACK_CRAZYFLIE_PATH}")
-        model = mujoco.MjModel.from_xml_path(FALLBACK_CRAZYFLIE_PATH)
+        xml_string = generate_quadrotor_xml(FALLBACK_CRAZYFLIE_PATH)
     else:
         print("Loading Standalone Quadrotor Model...")
-        model = mujoco.MjModel.from_xml_string(QUADROTOR_FALLBACK_XML)
+        xml_string = generate_quadrotor_xml(None)
+
+    # We must pass the directory of the original XML so the include path resolves properly
+    model_dir = os.path.dirname(MENAGERIE_X2_PATH) if os.path.exists(MENAGERIE_X2_PATH) else None
+    
+    # In python bindings from_xml_string does not accept dir, we temporarily chdir
+    if model_dir:
+        original_cwd = os.getcwd()
+        os.chdir(model_dir)
+        model = mujoco.MjModel.from_xml_string(xml_string)
+        os.chdir(original_cwd)
+    else:
+        model = mujoco.MjModel.from_xml_string(xml_string)
 
     data = mujoco.MjData(model)
 
@@ -164,32 +182,32 @@ def main():
                 if key:
                     key = key.lower()
                     if key == 'w':
-                        vx += 0.05
+                        vx += linear_speed_step
                         pitch = -0.15
                         key_pressed = True
                     elif key == 's':
-                        vx -= 0.05
+                        vx -= linear_speed_step
                         pitch = 0.15
                         key_pressed = True
                     elif key == 'a':
-                        vy += 0.05
+                        vy += linear_speed_step
                         roll = -0.15
                         key_pressed = True
                     elif key == 'd':
-                        vy -= 0.05
+                        vy -= linear_speed_step
                         roll = 0.15
                         key_pressed = True
                     elif key == 'i':
-                        vz += 0.05
+                        vz += linear_speed_step
                         key_pressed = True
                     elif key == 'k':
-                        vz -= 0.05
+                        vz -= linear_speed_step
                         key_pressed = True
                     elif key == 'j':
-                        w_yaw += 0.1
+                        w_yaw += angular_speed_step
                         key_pressed = True
                     elif key == 'l':
-                        w_yaw -= 0.1
+                        w_yaw -= angular_speed_step
                         key_pressed = True
                     elif key == ' ':
                         vx, vy, vz = 0.0, 0.0, 0.0
@@ -199,27 +217,46 @@ def main():
                     elif key == 'q':
                         break
 
-                # Velocity friction damping for smooth motion
-                vx *= 0.95
-                vy *= 0.95
-                vz *= 0.95
-                roll *= 0.90
-                pitch *= 0.90
-                w_yaw *= 0.90
+                # Apply max speed limits
+                vx = np.clip(vx, -max_linear_speed, max_linear_speed)
+                vy = np.clip(vy, -max_linear_speed, max_linear_speed)
+                vz = np.clip(vz, -max_linear_speed, max_linear_speed)
+                w_yaw = np.clip(w_yaw, -max_angular_speed, max_angular_speed)
+
+                # Velocity friction damping for smooth motion (only coast if no keys pressed)
+                if not key_pressed:
+                    vx *= damping
+                    vy *= damping
+                    vz *= damping
+                    roll *= damping
+                    pitch *= damping
+                    w_yaw *= damping
 
                 yaw += w_yaw * dt
                 cos_y, sin_y = math.cos(yaw), math.sin(yaw)
                 
+                # Transform body-frame velocity to world-frame position update
                 x += (cos_y * vx - sin_y * vy) * dt
                 y += (sin_y * vx + cos_y * vy) * dt
                 z += vz * dt
                 if z < 0.1:
                     z = 0.1
 
-                quat = euler_to_quaternion(roll, pitch, yaw)
-
-                data.qpos[0:3] = [x, y, z]
-                data.qpos[3:7] = quat
+                # If "stable physics" is false, we simulate real physics vibrations
+                if not stable:
+                    j_x = x + np.random.uniform(-0.002, 0.002)
+                    j_y = y + np.random.uniform(-0.002, 0.002)
+                    j_z = z + np.random.uniform(-0.002, 0.002)
+                    j_r = roll + np.random.uniform(-0.01, 0.01)
+                    j_p = pitch + np.random.uniform(-0.01, 0.01)
+                    j_yw = yaw + np.random.uniform(-0.01, 0.01)
+                    quat = euler_to_quaternion(j_r, j_p, j_yw)
+                    data.qpos[0:3] = [j_x, j_y, j_z]
+                    data.qpos[3:7] = quat
+                else:
+                    quat = euler_to_quaternion(roll, pitch, yaw)
+                    data.qpos[0:3] = [x, y, z]
+                    data.qpos[3:7] = quat
 
                 mujoco.mj_step(model, data)
                 viewer.sync()
@@ -229,11 +266,20 @@ def main():
                     last_print_time = current_time
                     R = quaternion_to_rotation_matrix(quat)
 
+                    # Get actual velocity from physics engine (even though we manually update qpos, 
+                    # mujoco still computes objectVelocity if mj_forward or mj_step was called)
+                    # For skydio, the body is usually the root body in the included xml. Let's just find the first free body.
+                    # Or we can just use the manual velocities vx, vy, vz as "actual" since we teleport.
+                    
                     sys.stdout.write("\033[H\033[J")
                     print("=" * 60)
-                    print(f"🚁 SKYDIO X2 QUADROTOR | Z: {z:.3f} m | Yaw: {math.degrees(yaw):+.1f}°")
+                    print("🚁 SKYDIO X2 QUADROTOR TELEMETRY")
+                    print("-" * 60)
+                    print(f"Commanded | VX: {vx:+.2f} | VY: {vy:+.2f} | VZ: {vz:+.2f} | Yaw Rate: {w_yaw:+.2f}")
+                    # Since this drone is purely kinematic teleported, actual = commanded.
+                    print(f"Actual    | VX: {vx:+.2f} | VY: {vy:+.2f} | VZ: {vz:+.2f} | Yaw Rate: {w_yaw:+.2f}")
                     print("=" * 60)
-                    print(f"Position (x, y, z): [{x:.3f}, {y:.3f}, {z:.3f}]")
+                    print(f"World Position (x, y, z): [{x:.3f}, {y:.3f}, {z:.3f}]")
                     print("\n3x3 Body Frame Rotation Matrix (R):")
                     print(f"[{R[0,0]:8.4f}  {R[0,1]:8.4f}  {R[0,2]:8.4f}]")
                     print(f"[{R[1,0]:8.4f}  {R[1,1]:8.4f}  {R[1,2]:8.4f}]")
