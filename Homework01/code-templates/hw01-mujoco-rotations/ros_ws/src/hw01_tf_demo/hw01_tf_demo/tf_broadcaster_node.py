@@ -126,20 +126,18 @@ class Hw01TfBroadcaster(Node):
         # Broadcast the fixed space frame (identity, never changes).
         self.broadcast_frame("world", "space_frame", np.eye(3))
 
-        # TODO(student): apply the next step in STEP_SEQUENCE to
-        # self.R_body, using the "compose_frame" parameter (read it
-        # with self.get_parameter("compose_frame").value) to decide
-        # current-frame (right-multiply) vs fixed-frame
-        # (left-multiply) composition -- exactly like
-        # compose_sequence() in 01_rotation_sandbox.py. Advance
-        # self.step_index and wrap around (or stop) at the end of
-        # STEP_SEQUENCE.
-        #
-        # axis, angle = STEP_SEQUENCE[self.step_index % len(STEP_SEQUENCE)]
-        # R_step = ELEMENTARY_ROTATIONS[axis](angle)
-        # frame = self.get_parameter("compose_frame").value
-        # ... your composition rule here ...
-        # self.step_index += 1
+        axis, angle = STEP_SEQUENCE[self.step_index % len(STEP_SEQUENCE)]
+        R_step = ELEMENTARY_ROTATIONS[axis](angle)
+        frame = self.get_parameter("compose_frame").value
+        
+        if frame == "current":
+            self.R_body = self.R_body @ R_step
+        elif frame == "fixed":
+            self.R_body = R_step @ self.R_body
+        else:
+            self.get_logger().error(f"Unknown compose_frame: {frame}")
+            
+        self.step_index += 1
 
         self.broadcast_frame("world", "body_frame", self.R_body)
 

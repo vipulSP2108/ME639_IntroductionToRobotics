@@ -63,9 +63,12 @@ def compose_sequence(sequence):
     R = np.eye(3)
     for axis, angle, frame in sequence:
         R_step = ELEMENTARY_ROTATIONS[axis](angle)
-        # TODO: replace the next line with the correct composition
-        # rule depending on `frame`.
-        raise NotImplementedError("Implement current- vs fixed-frame composition")
+        if frame == "current":
+            R = R @ R_step
+        elif frame == "fixed":
+            R = R_step @ R
+        else:
+            raise ValueError(f"Unknown frame type: {frame}")
     return R
 
 
@@ -73,21 +76,106 @@ def main():
     model = mujoco.MjModel.from_xml_path(MODEL_PATH)
     data = mujoco.MjData(model)
 
-    R_final = compose_sequence(rotation_sequence)
-    set_body_orientation(data, R_final)
+    R_current = np.eye(3)
+    set_body_orientation(data, R_current)
     mujoco.mj_forward(model, data)
 
-    with mujoco.viewer.launch_passive(model, data) as viewer:
-        print("Viewer open. Close the window to exit.")
-        print(f"Applied sequence: {rotation_sequence}")
+    # State dictionary to communicate keyboard events to the main loop
+    state = {"action": None}
+
+    def key_callback(keycode):
+        # Keyboard handler for MuJoCo passive viewer
+        if keycode in (ord('r'), ord('R')):
+            state["action"] = "reset"
+        elif keycode == 32 or keycode in (ord('s'), ord('S')):  # Spacebar or 'S'
+            state["action"] = "play"
+        elif keycode in (ord('c'), ord('C')):
+            state["action"] = "play_current"
+        elif keycode in (ord('f'), ord('F')):
+            state["action"] = "play_fixed"
+
+    with mujoco.viewer.launch_passive(model, data, key_callback=key_callback) as viewer:
+        print("\n" + "="*65)
+        print("MuJoCo Rotation Sandbox Ready!")
+        print("Camera controls:")
+        print("  - Left-Click and drag in background: Rotate camera view")
+        print("  - Right-Click and drag: Pan camera")
+        print("  - Scroll wheel: Zoom in/out")
+        print("\nKeyboard controls (click viewer window to focus, then press):")
+        print("  [SPACE] : Play rotation sequence")
+        print("  [C]     : Play sequence using CURRENT (Body) Frame")
+        print("  [F]     : Play sequence using FIXED (Space) Frame")
+        print("  [R]     : RESET back to initial orientation")
+        print("="*65 + "\n")
+
         while viewer.is_running():
+            if state["action"] == "reset":
+                state["action"] = None
+                R_current = np.eye(3)
+                set_body_orientation(data, R_current)
+                mujoco.mj_forward(model, data)
+                viewer.sync()
+                print(">>> RESET: Back to starting orientation (identity) <<<\n")
+
+            elif state["action"] in ("play", "play_current", "play_fixed"):
+                act = state["action"]
+                state["action"] = None
+
+                # Determine which sequence to run
+                if act == "play":
+                    seq_to_run = rotation_sequence
+                    print(f"\n>>> Running configured sequence: {seq_to_run} <<<")
+                elif act == "play_current":
+                    seq_to_run = [(axis, angle, "current") for axis, angle, _ in rotation_sequence]
+                    print("\n>>> Running in CURRENT (Body) Frame <<<")
+                elif act == "play_fixed":
+                    seq_to_run = [(axis, angle, "fixed") for axis, angle, _ in rotation_sequence]
+                    print("\n>>> Running in FIXED (Space) Frame <<<")
+
+                # Reset to initial before playing so each run starts clean
+                R_current = np.eye(3)
+                set_body_orientation(data, R_current)
+                mujoco.mj_forward(model, data)
+                viewer.sync()
+                time.sleep(0.3)
+
+                # Animate the sequence step by step
+                steps_per_rotation = 90  # 1.5 seconds per rotation at 60 Hz
+                interrupted = False
+                for step_idx, (axis, angle, frame) in enumerate(seq_to_run, 1):
+                    if not viewer.is_running() or state["action"] == "reset":
+                        interrupted = True
+                        break
+                    print(f"Step {step_idx}: Rotate {np.rad2deg(angle):.1f} deg about {axis}-axis ({frame} frame)...")
+                    R_start = R_current.copy()
+                    for i in range(1, steps_per_rotation + 1):
+                        if not viewer.is_running() or state["action"] == "reset":
+                            interrupted = True
+                            break
+                        frac = i / steps_per_rotation
+                        R_step = ELEMENTARY_ROTATIONS[axis](angle * frac)
+
+                        if frame == "current":
+                            R_current_interp = R_start @ R_step
+                        elif frame == "fixed":
+                            R_current_interp = R_step @ R_start
+
+                        set_body_orientation(data, R_current_interp)
+                        mujoco.mj_forward(model, data)
+                        viewer.sync()
+                        time.sleep(1 / 60)
+
+                    if interrupted:
+                        break
+                    R_current = R_current_interp
+                    time.sleep(0.5)
+
+                if not interrupted:
+                    print(">>> Sequence Complete! Final orientation displayed. <<<")
+                    print("Press [R] to Reset, [C] for Current Frame, [F] for Fixed Frame.\n")
+
             viewer.sync()
             time.sleep(1 / 60)
-
-    # TODO(student, optional): instead of a static final pose,
-    # animate the sequence step by step (e.g. interpolate each
-    # elemental rotation over ~1 second) so the recording clearly
-    # shows each step happening, not just the end result.
 
 
 if __name__ == "__main__":
