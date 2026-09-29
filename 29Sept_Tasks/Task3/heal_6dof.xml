@@ -1,0 +1,84 @@
+<mujoco model="heal_6dof">
+  <compiler angle="radian" coordinate="local"/>
+
+  <visual>
+    <headlight ambient="0.4 0.4 0.4" diffuse="0.8 0.8 0.8" specular="0.2 0.2 0.2"/>
+    <global offwidth="1280" offheight="720"/>
+  </visual>
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0.1 0.15 0.2" width="512" height="512"/>
+    <texture name="grid" type="2d" builtin="checker" width="512" height="512" rgb1="0.85 0.85 0.88" rgb2="0.65 0.65 0.7"/>
+    <material name="grid_mat" texture="grid" texrepeat="5 5" reflectance="0.2"/>
+    <material name="joint_mat" rgba="0.2 0.2 0.25 1" specular="0.4" shininess="0.6"/>
+    <material name="heal_accent" rgba="0.95 0.45 0.05 1" specular="0.6" shininess="0.7"/>
+    <material name="link_gray" rgba="0.75 0.75 0.8 1" specular="0.5" shininess="0.5"/>
+    <material name="ee_mat" rgba="0.1 0.85 0.2 1" specular="0.8" shininess="1.0"/>
+  </asset>
+
+  <worldbody>
+    <light diffuse="0.8 0.8 0.8" pos="1 1 4" dir="-0.3 -0.3 -1"/>
+    <geom name="floor" type="plane" size="5 5 0.1" material="grid_mat"/>
+
+    <!-- Base Pedestal -->
+    <body name="base_link" pos="0 0 0">
+      <geom name="base_geom" type="cylinder" size="0.18 0.05" pos="0 0 0.025" material="joint_mat"/>
+
+      <!-- Link 1 (Joint 1: Base rotation around Z) -->
+      <!-- DH 0: a=0.5, alpha=0, d=0 -->
+      <body name="link1" pos="0 0 0">
+        <joint name="joint1" type="hinge" axis="0 0 1"/>
+        <geom name="j1_hub" type="cylinder" size="0.08 0.06" material="joint_mat"/>
+        <geom name="l1_arm" type="capsule" fromto="0 0 0 0.5 0 0" size="0.05" material="heal_accent"/>
+
+        <!-- Link 2 (Joint 2: Shoulder) -->
+        <!-- DH 1: a=0, alpha=-pi/2, d=0 -->
+        <body name="link2" pos="0.5 0 0" euler="0 0 0">
+          <joint name="joint2" type="hinge" axis="0 0 1"/>
+          <geom name="j2_hub" type="sphere" size="0.075" material="joint_mat"/>
+
+          <!-- Link 3 (Joint 3: Elbow) -->
+          <!-- DH 2: a=0.4, alpha=pi/2, d=0 -->
+          <body name="link3" pos="0 0 0" euler="-1.5707963267948966 0 0">
+            <joint name="joint3" type="hinge" axis="0 0 1"/>
+            <geom name="j3_hub" type="cylinder" size="0.065 0.05" material="joint_mat"/>
+            <geom name="l3_arm" type="capsule" fromto="0 0 0 0.4 0 0" size="0.045" material="link_gray"/>
+
+            <!-- Link 4 (Joint 4: Wrist 1) -->
+            <!-- DH 3: a=0, alpha=-pi/2, d=0.3 -->
+            <body name="link4" pos="0.4 0 0" euler="1.5707963267948966 0 0">
+              <joint name="joint4" type="hinge" axis="0 0 1"/>
+              <geom name="j4_hub" type="sphere" size="0.06" material="joint_mat"/>
+              <geom name="l4_arm" type="capsule" fromto="0 0 0 0 0 0.3" size="0.04" material="heal_accent"/>
+
+              <!-- Link 5 (Joint 5: Wrist 2) -->
+              <!-- DH 4: a=0, alpha=pi/2, d=0 -->
+              <body name="link5" pos="0 0 0.3" euler="-1.5707963267948966 0 0">
+                <joint name="joint5" type="hinge" axis="0 0 1"/>
+                <geom name="j5_hub" type="sphere" size="0.055" material="joint_mat"/>
+
+                <!-- Link 6 (Joint 6: Wrist 3 / Tool Flange) -->
+                <!-- DH 5: a=0, alpha=0, d=0.2 -->
+                <body name="link6" pos="0 0 0" euler="1.5707963267948966 0 0">
+                  <joint name="joint6" type="hinge" axis="0 0 1"/>
+                  <geom name="j6_hub" type="cylinder" size="0.045 0.03" material="joint_mat"/>
+                  <geom name="l6_arm" type="capsule" fromto="0 0 0 0 0 0.2" size="0.035" material="link_gray"/>
+
+                  <!-- End-Effector Body & Site -->
+                  <body name="ee_body" pos="0 0 0.2" euler="0 0 0">
+                    <geom name="ee_tool" type="cylinder" size="0.03 0.02" material="joint_mat"/>
+                    <site name="end_effector" pos="0 0 0" size="0.03" material="ee_mat" type="sphere"/>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+
+    <!-- Fixed Cameras -->
+    <camera name="workspace_view" pos="1.8 -1.5 1.5" xyaxes="0.65 0.76 0 -0.42 0.36 0.83"/>
+    <camera name="top_down" pos="0.5 0.2 2.5" zaxis="0 0 1"/>
+  </worldbody>
+</mujoco>

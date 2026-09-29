@@ -1,0 +1,92 @@
+<mujoco model="franka_7dof">
+  <compiler angle="radian" coordinate="local"/>
+
+  <visual>
+    <headlight ambient="0.4 0.4 0.4" diffuse="0.8 0.8 0.8" specular="0.2 0.2 0.2"/>
+    <global offwidth="1280" offheight="720"/>
+  </visual>
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0.1 0.15 0.2" width="512" height="512"/>
+    <texture name="grid" type="2d" builtin="checker" width="512" height="512" rgb1="0.85 0.85 0.88" rgb2="0.65 0.65 0.7"/>
+    <material name="grid_mat" texture="grid" texrepeat="5 5" reflectance="0.2"/>
+    <material name="franka_white" rgba="0.92 0.92 0.95 1" specular="0.6" shininess="0.8"/>
+    <material name="franka_dark" rgba="0.2 0.22 0.25 1" specular="0.4" shininess="0.5"/>
+    <material name="accent_blue" rgba="0.2 0.5 0.9 1" specular="0.5" shininess="0.7"/>
+    <material name="ee_mat" rgba="0.1 0.85 0.2 1" specular="0.8" shininess="1.0"/>
+  </asset>
+
+  <worldbody>
+    <light diffuse="0.8 0.8 0.8" pos="1 1 4" dir="-0.3 -0.3 -1"/>
+    <!-- Ground plane placed at z = -0.5m so arm has full clearance -->
+    <geom name="floor" type="plane" pos="0 0 -0.5" size="5 5 0.1" material="grid_mat"/>
+
+    <!-- Base link mounted on a sturdy pedestal stand -->
+    <body name="base_link" pos="0 0 0">
+      <geom name="base_pedestal" type="cylinder" size="0.18 0.25" pos="0 0 -0.25" material="franka_dark"/>
+
+      <!-- Link 1 (Joint 1) -->
+      <!-- DH 0: alpha=0, a=0, d=0.33 -->
+      <body name="link1" pos="0 0 0">
+        <joint name="joint1" type="hinge" axis="0 0 1"/>
+        <geom name="j1_geom" type="cylinder" size="0.08 0.06" material="franka_dark"/>
+        <geom name="l1_geom" type="capsule" fromto="0 0 0 0 0 0.33" size="0.055" material="franka_white"/>
+
+        <!-- Link 2 (Joint 2) -->
+        <!-- DH 1: alpha=-pi/2, a=0, d=0 -->
+        <body name="link2" pos="0 0 0.33" euler="0 0 0">
+          <joint name="joint2" type="hinge" axis="0 0 1"/>
+          <geom name="j2_geom" type="sphere" size="0.075" material="franka_dark"/>
+
+          <!-- Link 3 (Joint 3) -->
+          <!-- DH 2: alpha=pi/2, a=0.316, d=0.088 -->
+          <body name="link3" pos="0 0 0" euler="-1.5707963267948966 0 0">
+            <joint name="joint3" type="hinge" axis="0 0 1"/>
+            <geom name="j3_geom" type="cylinder" size="0.065 0.05" material="franka_dark"/>
+            <geom name="l3_geom" type="capsule" fromto="0 0 0 0.316 0 0.088" size="0.05" material="franka_white"/>
+
+            <!-- Link 4 (Joint 4) -->
+            <!-- DH 3: alpha=-pi/2, a=0, d=0 -->
+            <body name="link4" pos="0.316 0 0.088" euler="1.5707963267948966 0 0">
+              <joint name="joint4" type="hinge" axis="0 0 1"/>
+              <geom name="j4_geom" type="sphere" size="0.065" material="franka_dark"/>
+
+              <!-- Link 5 (Joint 5) -->
+              <!-- DH 4: alpha=pi/2, a=0.384, d=0.088 -->
+              <body name="link5" pos="0 0 0" euler="-1.5707963267948966 0 0">
+                <joint name="joint5" type="hinge" axis="0 0 1"/>
+                <geom name="j5_geom" type="cylinder" size="0.055 0.04" material="franka_dark"/>
+                <geom name="l5_geom" type="capsule" fromto="0 0 0 0.384 0 0.088" size="0.045" material="franka_white"/>
+
+                <!-- Link 6 (Joint 6) -->
+                <!-- DH 5: alpha=-pi/2, a=0, d=0 -->
+                <body name="link6" pos="0.384 0 0.088" euler="1.5707963267948966 0 0">
+                  <joint name="joint6" type="hinge" axis="0 0 1"/>
+                  <geom name="j6_geom" type="sphere" size="0.055" material="franka_dark"/>
+
+                  <!-- Link 7 (Joint 7) -->
+                  <!-- DH 6: alpha=pi/2, a=0, d=0.107 -->
+                  <body name="link7" pos="0 0 0" euler="-1.5707963267948966 0 0">
+                    <joint name="joint7" type="hinge" axis="0 0 1"/>
+                    <geom name="j7_geom" type="cylinder" size="0.045 0.03" material="franka_dark"/>
+                    <geom name="l7_geom" type="capsule" fromto="0 0 0 0 0 0.107" size="0.04" material="franka_white"/>
+
+                    <!-- End-Effector Tool Flange -->
+                    <body name="ee_body" pos="0 0 0.107" euler="1.5707963267948966 0 0">
+                      <geom name="hand" type="box" size="0.03 0.04 0.02" material="franka_dark"/>
+                      <site name="end_effector" pos="0 0 0" size="0.025" material="ee_mat" type="sphere"/>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+
+    <!-- Fixed Cameras -->
+    <camera name="workspace_view" pos="1.6 -1.6 1.4" xyaxes="0.71 0.71 0 -0.41 0.41 0.82"/>
+    <camera name="front_view" pos="0 -2.0 0.8" xyaxes="1 0 0 0 0.38 0.92"/>
+  </worldbody>
+</mujoco>
