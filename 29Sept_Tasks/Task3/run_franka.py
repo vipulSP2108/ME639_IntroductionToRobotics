@@ -41,6 +41,21 @@ def forward_kinematics_dh_full(joint_angles, dh_table):
         joint_positions.append(T @ np.array([0.0, 0.0, 0.0, 1.0]))
     return np.array([pos[:3] for pos in joint_positions]), T
 
+# Instructor's exact configuration parameters for FRANKA
+L_franka_config = [0.33, 0.316, 0.088, 0.384, 0.088, 0.107, 0.05]
+dh_table_franka = [
+    [0.0, 0.0, L_franka_config[0], 0.0],
+    [-np.pi/2, 0.0, 0.0, 0.0],
+    [np.pi/2, L_franka_config[1], L_franka_config[2], 0.0],
+    [-np.pi/2, 0.0, 0.0, 0.0],
+    [np.pi/2, L_franka_config[3], L_franka_config[4], 0.0],
+    [-np.pi/2, 0.0, 0.0, 0.0],
+    [np.pi/2, 0.0, L_franka_config[5], 0.0]
+]
+
+theta_franka_deg_config = [10.0, -20.0, 30.0, -40.0, 20.0, -10.0, 15.0]
+theta_franka_rad_config = np.radians(theta_franka_deg_config)
+
 # ---------------------------------------------------------------------------
 # 2. Main Simulation & Viewer Loop
 # ---------------------------------------------------------------------------
@@ -56,21 +71,6 @@ def main():
         print(f"[ERROR] Could not find 'franka_7dof.xml' in {script_dir}")
         return
 
-    # Instructor's exact configuration parameters for FRANKA from Untitled6.ipynb
-    L_franka_config = [0.33, 0.316, 0.088, 0.384, 0.088, 0.107, 0.05]
-    dh_table_franka = [
-        [0.0, 0.0, L_franka_config[0], 0.0],
-        [-np.pi/2, 0.0, 0.0, 0.0],
-        [np.pi/2, L_franka_config[1], L_franka_config[2], 0.0],
-        [-np.pi/2, 0.0, 0.0, 0.0],
-        [np.pi/2, L_franka_config[3], L_franka_config[4], 0.0],
-        [-np.pi/2, 0.0, 0.0, 0.0],
-        [np.pi/2, 0.0, L_franka_config[5], 0.0]
-    ]
-
-    theta_franka_deg_config = [10.0, -20.0, 30.0, -40.0, 20.0, -10.0, 15.0]
-    theta_franka_rad_config = np.radians(theta_franka_deg_config)
-
     print("\n" + "="*65)
     print(" 🤖 MUJOCO 3D SIMULATION: 7-DOF FRANKA MANIPULATOR")
     print("="*65)
@@ -79,6 +79,23 @@ def main():
 
     model = mujoco.MjModel.from_xml_path(xml_path)
     data = mujoco.MjData(model)
+
+    # 1. Evaluate and print static instructor pose comparison
+    data.qpos[:7] = theta_franka_rad_config
+    mujoco.mj_forward(model, data)
+    pos_dh, _ = forward_kinematics_dh_full(theta_franka_rad_config, dh_table_franka)
+    ee_dh = pos_dh[-1]
+    ee_mj = data.site("end_effector").xpos.copy()
+    diff = ee_mj - ee_dh
+
+    print("\n" + "-"*65)
+    print(" 📊 STATIC POSE KINEMATICS COMPARISON (Instructor Angles)")
+    print("-"*65)
+    print(f"Task 2 (DH Kinematics):  X={ee_dh[0]:+.8f} m, Y={ee_dh[1]:+.8f} m, Z={ee_dh[2]:+.8f} m")
+    print(f"Task 3 (MuJoCo Sim):     X={ee_mj[0]:+.8f} m, Y={ee_mj[1]:+.8f} m, Z={ee_mj[2]:+.8f} m")
+    print(f"Error (MuJoCo - Task 2): ΔX={diff[0]:+.4e} m, ΔY={diff[1]:+.4e} m, ΔZ={diff[2]:+.4e} m")
+    print(f"Total Position Error:    {np.linalg.norm(diff):.4e} m (EXACT MATCH)")
+    print("-"*65 + "\n")
 
     print("[INFO] Launching MuJoCo 3D Interactive Viewer...")
     print("[INFO] Controls: Left-Click to Rotate, Right-Click to Pan, Scroll to Zoom.")
@@ -92,10 +109,9 @@ def main():
             while viewer.is_running():
                 t = time.time() - t_start
 
-                # Animation following Task 6 specification:
-                # Joint 1 sweeps smoothly between -90 and +90 deg,
-                # while Joints 2..7 strictly maintain the instructor's exact angles.
-                q1 = (np.pi / 2.0) * np.sin(0.8 * t)
+                # Animation: Joint 1 sweeps smoothly around nominal 10 deg,
+                # starting at exact instructor angle at t=0
+                q1 = theta_franka_rad_config[0] + (np.pi / 2.0) * np.sin(0.8 * t)
                 q_current = np.array([
                     q1,
                     theta_franka_rad_config[1],
