@@ -6,62 +6,44 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+
+# Virtual environments
 .venv/
 venv/
 ENV/
 env/
 
 # ─────────────────────────────────────────────
-# Logs & Generated Data (reproducible, large)
+# Generated data (large, reproducible by running scripts)
 # ─────────────────────────────────────────────
 logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-# Generated plots & analysis outputs
-*/analysis/plots/
+analysis/plots/
 
 # ─────────────────────────────────────────────
 # MuJoCo artifacts
 # ─────────────────────────────────────────────
 *.mjb
-*.mjt
+/tmp/
 
 # ─────────────────────────────────────────────
-# Private / dev-only — NOT for public GitHub
-# temp/ contains raw assignment files, IDE inspection notes, personal scratch
+# Private / dev-only (NOT for public GitHub)
+# temp/ contains: raw assignment files, IDE notes, personal scratch work
 # ─────────────────────────────────────────────
 temp/
 
 # ─────────────────────────────────────────────
-# Node / Web
-# ─────────────────────────────────────────────
-node_modules/
-dist/
-dist-ssr/
-*.local
-
-# ─────────────────────────────────────────────
 # Editor & OS
 # ─────────────────────────────────────────────
-.vscode/*
-!.vscode/extensions.json
 .idea/
-.DS_Store
+.vscode/
 *.suo
-*.ntvs*
-*.njsproj
-*.sln
+*.DS_Store
 *.sw?
+*.sln
 
 # ─────────────────────────────────────────────
 # Build / packaging
 # ─────────────────────────────────────────────
+dist/
 build/
 *.egg-info/
-
-report

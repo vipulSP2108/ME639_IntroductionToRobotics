@@ -1,0 +1,150 @@
+WARNING Fri Oct  2 10:03:48 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:04:46 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:05:48 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:07:24 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:07:37 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:08:09 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:08:41 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:09:07 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:09:29 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:10:04 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:10:15 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:10:59 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:11:06 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:11:13 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:11:19 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:11:25 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:11:32 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:11:49 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:11:56 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:12:07 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:12:16 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:12:25 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:12:29 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:12:34 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:12:39 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:12:50 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:12:55 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:13:00 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:13:20 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:13:26 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:13:31 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:13:48 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:13:53 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:13:58 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:14:02 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:14:07 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+WARNING Fri Oct  2 10:16:48 2026: Nan, Inf or huge value in QACC at DOF 0. The simulation is unstable. Time = 0.4460.
+
+WARNING Fri Oct  2 10:23:46 2026: Attach conflict when attaching 'robotiq_2f85' to 'addverb_heal', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
