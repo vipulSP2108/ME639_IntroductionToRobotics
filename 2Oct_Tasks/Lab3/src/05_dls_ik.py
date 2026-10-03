@@ -39,6 +39,7 @@ from utils.kinematics import (
     forward_kinematics
 )
 from utils.quaternion_utils import DOWNWARD_QUAT
+from utils.trajectory import execute_smooth_cartesian_trajectory
 from scripts.load_heal_robot import compensate_gravity
 
 scene_mod = importlib.import_module("src.02_scene_setup")
@@ -208,20 +209,39 @@ def dls_ik_solver(model, data, cube_pos, tray_pos, lambda_=DEFAULT_LAMBDA, viewe
             ik_iterations.append(steps_hold)
 
         else:
-            converged, steps, err = solve_dls_phase(
-                model, data, target_pos,
-                target_quat=DOWNWARD_QUAT,
-                lambda_=lambda_,
-                max_steps=max_steps,
-                viewer=viewer,
-                arm_joints=arm_joints,
-                arm_dofs=arm_dofs,
-                grasped=grasped,
-                qpos_adr=qpos_adr,
-                step_delay=step_delay,
-            )
+            if viewer is not None:
+                dur_map = {
+                    "pre_grasp": 1.2,
+                    "approach": 0.9,
+                    "lift": 0.9,
+                    "transit": 1.6,
+                    "place_descend": 0.9,
+                    "retreat": 1.1,
+                }
+                dur = dur_map.get(phase_name, 1.0)
+                converged, steps, err = execute_smooth_cartesian_trajectory(
+                    model, data, target_pos, DOWNWARD_QUAT,
+                    duration=dur, fps=50, solver="dls",
+                    viewer=viewer, step_delay=step_delay,
+                    grasped=grasped, qpos_adr=qpos_adr,
+                    arm_joints=arm_joints, arm_dofs=arm_dofs,
+                    lambda_=lambda_,
+                )
+            else:
+                converged, steps, err = solve_dls_phase(
+                    model, data, target_pos,
+                    target_quat=DOWNWARD_QUAT,
+                    lambda_=lambda_,
+                    max_steps=max_steps,
+                    viewer=viewer,
+                    arm_joints=arm_joints,
+                    arm_dofs=arm_dofs,
+                    grasped=grasped,
+                    qpos_adr=qpos_adr,
+                    step_delay=step_delay,
+                )
             ik_iterations.append(steps)
-            if not converged and err > 0.02:
+            if not converged and err > 0.025:
                 failure_reason = f"ik_infeasible ({phase_name})"
                 break
 

@@ -130,3 +130,40 @@ def rot_matrix_to_quat(R):
     if q[0] < 0.0:
         q = -q
     return q
+
+
+def quat_slerp(q0, q1, tau):
+    """
+    Spherical Linear Interpolation (SLERP) between two unit quaternions q0 and q1.
+    tau in [0, 1].
+    """
+    tau = float(np.clip(tau, 0.0, 1.0))
+    q0 = np.asarray(q0, dtype=np.float64)
+    q1 = np.asarray(q1, dtype=np.float64)
+
+    norm0 = np.linalg.norm(q0)
+    norm1 = np.linalg.norm(q1)
+    if norm0 > 1e-9:
+        q0 = q0 / norm0
+    if norm1 > 1e-9:
+        q1 = q1 / norm1
+
+    dot = float(np.dot(q0, q1))
+    if dot < 0.0:
+        q1 = -q1
+        dot = -dot
+
+    if dot > 0.9995:
+        # Linear interpolation for very close orientations to avoid division by zero
+        res = q0 + tau * (q1 - q0)
+        return res / np.linalg.norm(res)
+
+    theta_0 = np.arccos(np.clip(dot, -1.0, 1.0))
+    sin_theta_0 = np.sin(theta_0)
+    theta = theta_0 * tau
+    sin_theta = np.sin(theta)
+
+    s0 = np.cos(theta) - dot * sin_theta / sin_theta_0
+    s1 = sin_theta / sin_theta_0
+    res = (s0 * q0) + (s1 * q1)
+    return res / np.linalg.norm(res)

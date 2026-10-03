@@ -24,7 +24,8 @@ Lab3/
 │   ├── mj_velocity_control/
 │   │   └── mj_velocity_ctrl.py  ← JointVelocityController & JointPositionController
 │   ├── kinematics.py            ← FK, Jacobian, DLS-IK, QP-IK
-│   ├── quaternion_utils.py      ← Quaternion error, log map, angular velocity
+│   ├── quaternion_utils.py      ← Quaternion error, SLERP, log map, angular velocity
+│   ├── trajectory.py            ← Quintic minimum-jerk splines & full-table sampler
 │   └── workspace.py             ← Workspace sampling & visualization helpers
 │
 ├── src/                         ← Main runnable pipeline scripts
@@ -35,7 +36,10 @@ Lab3/
 │   ├── 05_dls_ik.py             ← Stage 5: Phase 2 — DLS-IK implementation
 │   └── 06_qp_ik.py              ← Stage 6: Phase 2 — QP-IK implementation
 │
-├── scripts/                     ← Starter / reference scripts (provided)
+├── scripts/                     ← Standalone interactive & recording tools
+│   ├── interactive_play.py      ← 3D viewer playground with mouse forces & shortcuts
+│   ├── extra_workspace_features.py ← 3D reachable sphere & silky-smooth tour
+│   ├── record_demo.py           ← Automated demo recorder for 3-minute video
 │   ├── example_controlling_gripper.py
 │   ├── example_controlling_velocity.py
 │   ├── load_any_xml.py
@@ -95,8 +99,9 @@ python -c "import mujoco; print(mujoco.__version__)"
 | 4 | `python src/04_batch_episodes.py` | 25+ randomized episodes, saves `logs/episode_logs_mink.json` |
 | 5 | `python src/05_dls_ik.py` | Same episodes with custom DLS-IK, saves `logs/episode_logs_dls.json` |
 | 6 | `python src/06_qp_ik.py` | Same episodes with QP-IK, generates 4 comparison plots |
-| 7 | `python scripts/interactive_play.py` | **Interactive 3D Playground**: Live visual test with mouse physics forces |
-| 8 | `python scripts/record_demo.py` | **Automated Video Recorder**: 3-min video runner across Mink, DLS, and QP |
+| 7 | `mjpython scripts/interactive_play.py` | **Interactive 3D Playground**: Live visual test with mouse forces, [W] sphere toggle, [T] tour |
+| 8 | `mjpython scripts/extra_workspace_features.py` | **Workspace Sphere & Tour**: 3D reachable sphere & 13-point silky-smooth boundary tour |
+| 9 | `mjpython scripts/record_demo.py` | **Automated Video Recorder**: 3-min video runner across Mink, DLS, and QP |
 
 ---
 

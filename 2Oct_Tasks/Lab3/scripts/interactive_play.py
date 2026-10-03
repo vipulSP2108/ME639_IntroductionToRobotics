@@ -4,11 +4,21 @@ scripts/interactive_play.py
 =============================================================================
 Interactive MuJoCo 3D Playground for ME639 Lab 3
 =============================================================================
-Allows you to interact with the HEAL arm, table, cube, and gripper in real-time:
-  - Run Pick and Place using any IK solver (Mink, DLS, QP)
-  - Randomize cube position on the table in real-time (modifies scene in-place)
-  - Double-click any body in the viewer and hold Ctrl + Right-Click to apply forces!
-  - Watch the arm move at smooth, human-watchable robotic speed (50 FPS)
+Features:
+  - Silky-Smooth Continuous Pick-and-Place:
+    Uses quintic minimum-jerk spline trajectory interpolation at 50 FPS
+    for fluid robotic translation (no discrete jumps, zero lag).
+  - Reachable Workspace Sphere & Point Cloud (Key [W]):
+    Renders the outer reachable sphere (R = 0.72 m) and inner dead-zone
+    sphere (R = 0.18 m) in 3D directly in the MuJoCo viewer window.
+  - Multi-Point Workspace Boundary Tour (Key [T]):
+    Sweeps the robot through 13 key boundary points across the entire
+    reachable envelope with smooth minimum-jerk transitions.
+  - Full-Table Domain Randomization (Key [R]):
+    Spans the entire table surface (X in [0.29, 0.61], Y in [-0.21, 0.21]),
+    rejecting tray and kinematic dead zones.
+  - Interactive IK Solver Switching:
+    Compare MINK, DLS, and QP in real-time.
 
 Usage:
   mjpython scripts/interactive_play.py
@@ -24,7 +34,11 @@ import importlib
 import numpy as np
 
 import mujoco
-import mujoco.viewer
+try:
+    import mujoco.viewer
+    HAS_VIEWER = True
+except (ImportError, AttributeError):
+    HAS_VIEWER = False
 
 # Path resolution
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -32,10 +46,16 @@ PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+os.environ.setdefault("MPLCONFIGDIR", os.path.join(PROJECT_ROOT, "temp", ".mpl"))
+os.makedirs(os.path.join(PROJECT_ROOT, "temp", ".mpl"), exist_ok=True)
+
 from utils.kinematics import get_arm_joint_and_dof_indices
+from utils.trajectory import sample_cube_pose_full_table
+from scripts.extra_workspace_features import WorkspaceFeatureManager, WORKSPACE_TOUR_POINTS
 
 scene_mod = importlib.import_module("src.02_scene_setup")
 build_scene = scene_mod.build_scene
+reset_cube_pose = scene_mod.reset_cube_pose
 TABLE_H = scene_mod.TABLE_H
 CUBE_Z = scene_mod.CUBE_Z
 TRAY_X = scene_mod.TRAY_X
@@ -53,49 +73,41 @@ qp_ik_solver = qp_mod.qp_ik_solver
 
 
 def print_banner():
-    print("\n" + "═" * 72)
+    print("\n" + "═" * 74)
     print("       🤖 ME639 LAB 3: INTERACTIVE MUJOCO 3D PLAYGROUND")
-    print("═" * 72)
+    print("═" * 74)
     print("Welcome! The 3D MuJoCo Viewer is now active on your screen.")
-    print("\n🎮 MOUSE CONTROLS IN THE 3D VIEWER WINDOW:")
+    print("\n🎮 3D VIEWER WINDOW KEYBOARD & MOUSE SHORTCUTS:")
+    print("  • Key [W]:                 Toggle Reachable Workspace Sphere & Cloud")
+    print("  • Key [T]:                 Run Silky-Smooth Workspace Boundary Tour")
+    print("  • Spacebar:                Pause / unpause physics simulation")
+    print("  • Backspace:               Reset camera view")
     print("  • Left-click + drag:       Rotate camera view")
     print("  • Right-click + drag:      Zoom in / out")
     print("  • Middle-click + drag:     Pan camera")
-    print("  • Double-click object:     Select body (e.g. click the red cube)")
     print("  • Ctrl + Right-drag:       Apply physical mouse forces to selected body!")
-    print("  • Spacebar:                Pause / unpause physics simulation")
-    print("  • Backspace:               Reset camera view")
-    print("  • Tab:                     Toggle visual HUD & joint stats")
-    print("═" * 72 + "\n")
+    print("═" * 74 + "\n")
 
 
 def reset_simulation(model, data, cube_x=0.38, cube_y=0.0, cube_yaw=0.0):
     """
-    Resets the arm posture and cube pose directly inside the EXISTING data
-    object so the MuJoCo viewer remains 100% bound and synchronized!
+    Resets the arm configuration and cube pose directly inside the EXISTING data
+    object so the MuJoCo viewer remains 100% bound and synchronized.
     """
     arm_joints, _ = get_arm_joint_and_dof_indices(model)
-    
-    # 1. Reset all state to defaults
+
     data.qpos[:] = model.qpos0[:]
     data.qvel[:] = 0.0
     data.qacc[:] = 0.0
     data.ctrl[:] = 0.0
 
-    # 2. Reset arm joints to neutral ready configuration
+    # Neutral ready posture
     data.qpos[arm_joints] = 0.0
 
-    # 3. Position the cube at the target coordinates
-    cube_jnt = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, "cube_free_joint")
-    if cube_jnt >= 0:
-        qadr = model.jnt_qposadr[cube_jnt]
-        dadr = model.jnt_dofadr[cube_jnt]
-        half_yaw = cube_yaw / 2.0
-        data.qpos[qadr : qadr + 3] = [cube_x, cube_y, CUBE_Z]
-        data.qpos[qadr + 3 : qadr + 7] = [np.cos(half_yaw), 0.0, 0.0, np.sin(half_yaw)]
-        data.qvel[dadr : dadr + 6] = 0.0
+    # Position the cube
+    reset_cube_pose(model, data, cube_x=cube_x, cube_y=cube_y, cube_yaw=cube_yaw)
 
-    # 4. Open gripper fully
+    # Open gripper fully
     gripper_act = 6
     if gripper_act < model.nu:
         data.ctrl[gripper_act] = 0.0
@@ -103,16 +115,16 @@ def reset_simulation(model, data, cube_x=0.38, cube_y=0.0, cube_yaw=0.0):
     mujoco.mj_forward(model, data)
 
 
-def run_interactive_session(default_solver="qp", continuous=False, step_delay=0.02):
+def run_interactive_session(default_solver="qp", continuous=False, step_delay=0.018):
     print_banner()
 
     solvers = {
-        "1": ("mink", mink_ik_solver, "Mink Differential IK (Off-the-shelf baseline)"),
-        "2": ("dls",  dls_ik_solver,  "Custom Closed-Loop DLS-IK (λ = 0.01)"),
-        "3": ("qp",   qp_ik_solver,   "Constrained QP-IK (Hard joint limits)"),
+        "1": ("mink", "Mink Differential IK (Off-the-shelf baseline)"),
+        "2": ("dls",  "Custom Closed-Loop DLS-IK (λ = 0.01)"),
+        "3": ("qp",   "Constrained QP-IK (Hard joint limits & box constraints)"),
     }
 
-    # Initial cube spawn at center of valid region
+    # Initial cube spawn
     cube_x = 0.38
     cube_y = 0.00
     cube_yaw = 0.00
@@ -121,11 +133,17 @@ def run_interactive_session(default_solver="qp", continuous=False, step_delay=0.
     model, data = build_scene(cube_x=cube_x, cube_y=cube_y, cube_yaw=cube_yaw)
     tray_pos = [TRAY_X, TRAY_Y, TRAY_Z]
 
-    with mujoco.viewer.launch_passive(model, data) as viewer:
+    mgr = WorkspaceFeatureManager(model, data, default_solver=default_solver)
+
+    def viewer_key_cb(keycode):
+        mgr.key_callback(keycode)
+
+    with mujoco.viewer.launch_passive(model, data, key_callback=viewer_key_cb) as viewer:
+        mgr.set_viewer(viewer)
         print("✓ MuJoCo 3D Window is open! Bring the viewer window into view.")
-        
+
         # Settle scene and let the viewer stabilize
-        for _ in range(60):
+        for _ in range(50):
             viewer.sync()
             time.sleep(0.01)
 
@@ -133,64 +151,66 @@ def run_interactive_session(default_solver="qp", continuous=False, step_delay=0.
         current_solver_key = "3" if default_solver == "qp" else ("2" if default_solver == "dls" else "1")
 
         if not continuous:
-            print("\n" + "─" * 65)
+            print("\n" + "─" * 68)
             print("👉 Look at the MuJoCo 3D window on your screen.")
             print("👉 Press [ENTER] in this terminal when ready to watch the robot move!")
-            print("─" * 65)
+            print("─" * 68)
             try:
                 input()
             except (EOFError, KeyboardInterrupt):
                 return
 
         while viewer.is_running():
-            name, solver_fn, desc = solvers[current_solver_key]
+            name, desc = solvers[current_solver_key]
             print(f"\n▶ [Episode {episode}] Executing pick-and-place with {name.upper()}:")
             print(f"  Method:          {desc}")
             print(f"  Cube Pos:        X={cube_x:.3f} m, Y={cube_y:.3f} m, Yaw={cube_yaw:.2f} rad")
-            print(f"  Playback Speed:  ~50 FPS (watch the robot in the 3D window)")
+            print(f"  Interpolation:   Quintic Minimum-Jerk Spline (~50 FPS smooth translation)")
 
             cube_pos = [cube_x, cube_y, CUBE_Z]
-            
-            # Execute the solver with realistic ~50 FPS step delay
-            log = solver_fn(model, data, cube_pos, tray_pos, viewer=viewer, step_delay=step_delay)
+
+            # Execute silky-smooth pick-and-place
+            log = mgr.run_smooth_pick_and_place(
+                cube_pos, tray_pos, solver=name, step_delay=step_delay
+            )
 
             status = "✓ SUCCESS" if log["success"] else f"✗ FAILED ({log.get('failure_reason', 'error')})"
-            total_steps = sum(log['ik_iterations'])
             print(f"  Result:          {status}")
-            print(f"  Total Duration:  {log['time_to_solve']:.2f} seconds ({total_steps} visual steps)")
+            print(f"  Total Duration:  {log['time_to_solve']:.2f} seconds ({log['total_steps']} smooth frames)")
             print(f"  Cube Final:      In tray at distance {log['dist_to_tray']*1000:.1f} mm")
 
             if continuous:
-                print("\n  [Continuous Mode] Pausing 2.5 seconds to show placed cube, then next trial...")
-                for _ in range(125):
+                print("\n  [Continuous Mode] Pausing 2.0 seconds to show placed cube, then next trial...")
+                for _ in range(100):
                     if not viewer.is_running():
                         break
                     viewer.sync()
                     time.sleep(0.02)
-                
-                # Randomize cube pose in-place
-                cube_x = float(np.random.uniform(0.34, 0.44))
-                cube_y = float(np.random.uniform(-0.13, 0.13))
-                cube_yaw = float(np.random.uniform(-0.5, 0.5))
+
+                # Randomize cube pose across entire table
+                cube_x, cube_y, cube_yaw = sample_cube_pose_full_table()
                 reset_simulation(model, data, cube_x=cube_x, cube_y=cube_y, cube_yaw=cube_yaw)
                 viewer.sync()
                 episode += 1
                 continue
 
             # Interactive menu
-            print("\n" + "─" * 65)
+            print("\n" + "─" * 68)
             print("WHAT WOULD YOU LIKE TO TEST NEXT?")
-            print("  [1] Run with MINK IK (Baseline)")
-            print("  [2] Run with DLS-IK (Closed-Loop, λ=0.01)")
-            print("  [3] Run with QP-IK (Constrained with Joint Limits)")
-            print("  [R] Randomize cube location and watch robot re-plan")
-            print("  [C] Switch to Continuous Hands-Free Mode")
-            print("  [Q] Quit Playground")
-            print("─" * 65)
+            print("  [ENTER] / [P] Run Silky-Smooth Pick & Place (with current solver)")
+            print("  [1]           Select MINK IK (Baseline)")
+            print("  [2]           Select DLS-IK (Closed-Loop, λ=0.01)")
+            print("  [3]           Select QP-IK (Constrained with Joint Limits)")
+            print("  [W]           Toggle Reachable Workspace Sphere & Cloud in 3D Window")
+            print("  [T]           Execute Silky-Smooth Workspace Boundary Tour")
+            print("  [R]           Randomize Cube Across ENTIRE Table Surface")
+            print("  [C]           Switch to Continuous Hands-Free Mode")
+            print("  [Q]           Quit Playground")
+            print("─" * 68)
 
             choice = None
             try:
-                choice = input("Enter choice [1/2/3/R/C/Q] (default: keep current): ").strip().upper()
+                choice = input(f"Enter choice [P/1/2/3/W/T/R/C/Q] (default: Run {name.upper()}): ").strip().upper()
             except (EOFError, KeyboardInterrupt):
                 break
 
@@ -199,19 +219,24 @@ def run_interactive_session(default_solver="qp", continuous=False, step_delay=0.
                 break
             elif choice in ["1", "2", "3"]:
                 current_solver_key = choice
+                print(f"Selected solver: {solvers[current_solver_key][0].upper()}")
+            elif choice == "W":
+                mgr.toggle_workspace_sphere()
+                continue
+            elif choice == "T":
+                mgr.run_smooth_tour(solver=name, step_delay=step_delay)
+                continue
             elif choice == "R":
-                cube_x = float(np.random.uniform(0.34, 0.44))
-                cube_y = float(np.random.uniform(-0.13, 0.13))
-                cube_yaw = float(np.random.uniform(-0.5, 0.5))
-                print(f"\n🎲 New random cube position: X={cube_x:.3f} m, Y={cube_y:.3f} m")
+                cube_x, cube_y, cube_yaw = sample_cube_pose_full_table()
+                print(f"\n🎲 New random cube position across table: X={cube_x:.3f} m, Y={cube_y:.3f} m, Yaw={cube_yaw:.2f} rad")
             elif choice == "C":
                 continuous = True
-            elif choice == "":
+            elif choice in ["", "P"]:
                 pass
 
-            # Reset the arm and cube IN-PLACE in the same data object!
+            # Reset arm and cube for next run
             reset_simulation(model, data, cube_x=cube_x, cube_y=cube_y, cube_yaw=cube_yaw)
-            for _ in range(20):
+            for _ in range(25):
                 viewer.sync()
                 time.sleep(0.01)
             episode += 1
@@ -221,14 +246,13 @@ def main():
     parser = argparse.ArgumentParser(description="Interactive MuJoCo 3D Playground")
     parser.add_argument("--solver", type=str, default="qp", choices=["mink", "dls", "qp"], help="Default IK solver")
     parser.add_argument("--continuous", action="store_true", help="Auto-loop episodes continuously without prompt")
-    parser.add_argument("--speed", type=float, default=0.02, help="Sleep delay per step in seconds (default: 0.02 = 50 FPS)")
+    parser.add_argument("--speed", type=float, default=0.018, help="Step delay in seconds (default: 0.018 ~ 55 FPS)")
     args = parser.parse_args()
 
     run_interactive_session(default_solver=args.solver, continuous=args.continuous, step_delay=args.speed)
 
 
 if __name__ == "__main__":
-    # On macOS, MuJoCo's GUI viewer requires running under mjpython
     if (
         sys.platform == "darwin"
         and not isinstance(getattr(mujoco.viewer, "_MJPYTHON", None), getattr(mujoco.viewer, "_MjPythonBase", object))

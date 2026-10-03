@@ -47,7 +47,10 @@ PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-import importlib
+os.environ.setdefault("MPLCONFIGDIR", os.path.join(PROJECT_ROOT, "temp", ".mpl"))
+os.makedirs(os.path.join(PROJECT_ROOT, "temp", ".mpl"), exist_ok=True)
+
+from utils.trajectory import sample_cube_pose_full_table
 
 scene_mod = importlib.import_module("src.02_scene_setup")
 build_scene = scene_mod.build_scene
@@ -101,10 +104,8 @@ def run_trials_for_method(
         seed = start_seed + t
         np.random.seed(seed)
         
-        # Sample randomized cube pose within safe table bounds
-        cube_x = float(np.random.uniform(0.34, 0.44))
-        cube_y = float(np.random.uniform(-0.13, 0.13))
-        cube_yaw = float(np.random.uniform(-0.5, 0.5))
+        # Sample randomized cube pose spanning entire table
+        cube_x, cube_y, cube_yaw = sample_cube_pose_full_table()
 
         print(f"\n▶ [{method_name.upper()}] Starting Trial {t + 1}/{trials} (Seed {seed})")
         print(f"  Cube Position: X={cube_x:.3f} m, Y={cube_y:.3f} m, Yaw={cube_yaw:.2f} rad")
